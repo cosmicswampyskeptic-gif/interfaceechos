@@ -1,49 +1,27 @@
-export type EpisodeType = 'story' | 'poetry' | 'excerpt'
+import type { Episode, Comment, Character } from '@/lib/types'
 
-export interface Character {
-    id: string
-    name: string
-    avatar: string // URL or emoji
-    bio: string
-}
+export type { Episode, Comment, Character }
 
-export interface Comment {
-    id: string
-    episodeId: string
-    author: string // Character Name
-    text: string
-    highlightedText: string // The text in the story this comment is attached to
-}
-
-export interface Episode {
-    id: string
-    title: string
-    slug: string
-    date: string
-    type: EpisodeType
-    summary: string
-    executiveSummary: string // "Author's Intent"
-    songUrl?: string // For the header player
-    content: string // Markdown or HTML-like string for now
-    bannerUrl: string
-    comments: Comment[]
-}
+export type EpisodeType = Episode['type']
 
 export const CHARACTERS: Record<string, Character> = {
     dog: {
         id: 'dog',
+        slug: 'dog',
         name: 'Starry-Eyed Golden Retriever',
         avatar: '🐕',
         bio: 'Optimistic to a fault. Believes the heat death of the universe is just a nap.'
     },
     roach: {
         id: 'roach',
+        slug: 'roach',
         name: 'The Cockroach',
         avatar: '🪳',
         bio: 'Survivor. Cynic. Has seen things you people wouldn\'t believe.'
     },
     wizard: {
         id: 'wizard',
+        slug: 'wizard',
         name: 'The Wizard',
         avatar: '🧙‍♂️',
         bio: 'Seeks magic in the mundane. Often disappointed, occasionally awestruck.'
@@ -114,8 +92,8 @@ export const EPISODES: Episode[] = [
         slug: 'anthropocene-excerpt',
         date: 'Jan 28, 2026',
         type: 'excerpt',
-        summary: 'Thoughts on scratch \\'n sniff stickers.',
-    executiveSummary: 'Why we try to preserve the ephemeral.',
+        summary: "Thoughts on scratch 'n sniff stickers.",
+        executiveSummary: 'Why we try to preserve the ephemeral.',
         bannerUrl: '/headers/book.jpg',
         content: `
       "We are, I think, a species that wants to be remembered. We want to leave a mark. We want to say, 'I was here. I mattered.' But the universe is vast and indifferent."

@@ -26,32 +26,35 @@ export function GlobalAudioPlayer({ url, title, className }: AudioPlayerProps) {
     // If no URL provided, don't render (or render placeholder)
     if (!url) return null
 
+    // Workaround for ReactPlayer type issues
+    const ReactPlayerAny = ReactPlayer as any
+
     return (
-        <div className={cn("flex items-center gap-3 bg-zinc-900/80 border border-white/10 rounded-full pl-2 pr-4 py-1.5 backdrop-blur-md transition-all", className)}>
+        <div className={cn("flex items-center gap-3 bg-card/80 border border-border rounded-full pl-2 pr-4 py-1.5 backdrop-blur-md transition-all", className)}>
             <button
                 onClick={() => setPlaying(!playing)}
-                className="w-8 h-8 rounded-full bg-indigo-500 hover:bg-indigo-400 flex items-center justify-center text-white transition-colors shadow-lg shadow-indigo-500/20"
+                className="w-8 h-8 rounded-full bg-primary hover:bg-primary/90 flex items-center justify-center text-primary-foreground transition-colors shadow-lg"
             >
                 {playing ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 ml-0.5" />}
             </button>
 
             <div className="flex flex-col min-w-[120px] max-w-[200px]">
-                <span className="text-[10px] text-indigo-300 font-bold uppercase tracking-wider flex items-center gap-1">
+                <span className="text-[10px] text-accent font-bold uppercase tracking-wider flex items-center gap-1">
                     <Music className="w-3 h-3" /> Now Playing
                 </span>
-                <span className="text-xs text-white truncate font-medium">{title || "Unknown Track"}</span>
+                <span className="text-xs text-foreground truncate font-medium">{title || "Unknown Track"}</span>
             </div>
 
             <button
                 onClick={() => setMuted(!muted)}
-                className="ml-2 text-zinc-400 hover:text-white transition-colors"
+                className="ml-2 text-muted-foreground hover:text-foreground transition-colors"
             >
                 {muted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
             </button>
 
             {/* Hidden Player */}
             <div className="hidden">
-                <ReactPlayer
+                <ReactPlayerAny
                     url={url}
                     playing={playing}
                     muted={muted}
@@ -59,7 +62,7 @@ export function GlobalAudioPlayer({ url, title, className }: AudioPlayerProps) {
                     height="0"
                     onReady={() => setIsReady(true)}
                     config={{
-                        youtube: { playerVars: { showinfo: 0 } as any }
+                        youtube: { playerVars: { showinfo: 0 } }
                     }}
                 />
             </div>

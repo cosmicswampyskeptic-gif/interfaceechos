@@ -1,88 +1,70 @@
--- Enable necessary extensions
+-- Enable UUID extension
 create extension if not exists "uuid-ossp";
 
--- USERS (Guest Auth implementation)
+-- PROFILES (Users)
 create table profiles (
-  id uuid primary key default uuid_generate_v4(),
-  first_name text not null,
-  last_name text, -- Optional, only used for disambiguation
-  username text unique, -- "Metaphor" username (e.g., 'starry-eyed-wizard')
-  avatar_url text, -- Icon that changes based on "arc"
-  bio text, -- "Honest description"
-  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+  id uuid references auth.users on delete cascade not null primary key,
+  first_name text,
+  last_name text,
+  avatar_url text,
+  role text default 'user', -- 'user', 'admin'
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  
+  -- Logic for duplicate names or guests without full auth
+  guest_id text unique
 );
 
--- EPISODES (Webtoon style content)
+-- EPISODES
 create table episodes (
-  id uuid primary key default uuid_generate_v4(),
-  title text not null,
+  id uuid default uuid_generate_v4() primary key,
   slug text unique not null,
+  title text not null,
   summary text,
-  executive_summary text, -- The "author's intent" toggle
-  content jsonb, -- Flexible content (text, image URLs, vignette data)
-  audio_url text, -- Background song header
-  published_at timestamp with time zone default timezone('utc'::text, now()) not null,
-  episode_number serial,
-  is_poetry boolean default false
+  content text, -- Full HTML or Markdown content
+  type text default 'story', -- 'story', 'poetry', 'vignette'
+  published_at timestamp with time zone default timezone('utc'::text, now()),
+  banner_url text,
+  audio_url text
 );
 
--- COMMENTS (Hover-to-reveal)
+-- COMMENTS
 create table comments (
-  id uuid primary key default uuid_generate_v4(),
-  episode_id uuid references episodes(id) on delete cascade not null,
-  user_id uuid references profiles(id) on delete set null,
-  content text not null,
-  location_x float, -- For spatial positioning (if we do visual comments)
-  location_y float,
-  is_anonymous boolean default false, -- "Anon names but not anon to me"
-  created_at timestamp with time zone default timezone('utc'::text, now()) not null
-);
-
--- REACTIONS (Micro-interactions)
-create table reactions (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid default uuid_generate_v4() primary key,
   episode_id uuid references episodes(id) on delete cascade not null,
   user_id uuid references profiles(id) on delete cascade not null,
-  reaction_type text not null, -- 'disturbed', 'resonated', 'heart', etc.
-  created_at timestamp with time zone default timezone('utc'::text, now()) not null
-);
-
--- LETTERS (Epistolary feature)
-create table letters (
-  id uuid primary key default uuid_generate_v4(),
-  sender_id uuid references profiles(id) on delete cascade not null,
-  recipient_id uuid references profiles(id) on delete cascade, -- Null = open letter
   content text not null,
-  is_public boolean default true,
+  
+  -- Positioning for "Highlight to Comment" or floating comments
+  paragraph_id text,
+  position_x numeric,
+  position_y numeric,
+  
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
--- BOOKMARKS/SAVED QUOTES
+-- SAVED ITEMS / BOOKMARKS
 create table saved_items (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid default uuid_generate_v4() primary key,
   user_id uuid references profiles(id) on delete cascade not null,
   episode_id uuid references episodes(id) on delete cascade not null,
-  quote_text text, -- Text selected
-  note text, -- User's annotation
+  quote_text text not null,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
--- RLS POLICIES (Basic setup)
+-- FEEDBACK
+create table feedback (
+  id uuid default uuid_generate_v4() primary key,
+  user_id uuid references profiles(id), -- Optional
+  content text not null,
+  type text default 'general',
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- RLS POLICIES (Example)
 alter table profiles enable row level security;
 alter table episodes enable row level security;
 alter table comments enable row level security;
-alter table reactions enable row level security;
-alter table letters enable row level security;
-alter table saved_items enable row level security;
 
--- Public read access
-create policy "Public profiles are viewable by everyone" on profiles for select using (true);
-create policy "Episodes are viewable by everyone" on episodes for select using (true);
-create policy "Comments are viewable by everyone" on comments for select using (true);
-create policy "Reactions are viewable by everyone" on reactions for select using (true);
-create policy "Letters are viewable by everyone" on letters for select using (true); -- Refine later
-
--- Guest write access (simplified for now, usually requires auth)
-create policy "Guests can insert profiles" on profiles for insert with check (true);
-create policy "Guests can comment" on comments for insert with check (true);
-create policy "Guests can react" on reactions for insert with check (true);
+create policy "Public episodes are viewable by everyone." on episodes for select using (true);
+create policy "Users can insert their own comments." on comments for insert with check (auth.uid() = user_id);
+create policy "Users can view comments." on comments for select using (true);
