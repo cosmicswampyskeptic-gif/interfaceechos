@@ -5,6 +5,8 @@ import Link from "next/link"
 import { Menu, Star, MessageSquare, Info, BookOpen, Music, Search, Heart, Mail } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
+import { GlobalAudioPlayer } from "@/components/media/GlobalAudioPlayer"
+import { EPISODES } from "@/lib/mockData"
 
 // HEADER COMPONENT
 export function Header() {
@@ -14,6 +16,11 @@ export function Header() {
                 <Link href="/" className="text-xl font-bold tracking-tighter text-white">
                     INTERFACE ECHOES
                 </Link>
+                <GlobalAudioPlayer
+                    url="https://www.youtube.com/watch?v=iYYRH4apXDo"
+                    title="Cosmic Theme"
+                    className="hidden md:flex ml-4"
+                />
             </div>
 
             <nav className="flex items-center gap-6 text-sm font-medium text-zinc-400">
@@ -42,26 +49,20 @@ export function Header() {
 
 // SIDEBAR COMPONENT (Episodes)
 export function Sidebar({ className }: { className?: string }) {
-    const episodes = [
-        { title: "The Starry-Eyed Wagging Golden Retriever", date: "Feb 02" },
-        { title: "The Cockroach", date: "Jan 28" },
-        { title: "The Wizard", date: "Jan 20" },
-        // Add more placeholders
-    ]
-
     return (
         <aside className={cn("w-80 h-screen fixed left-0 top-16 border-r border-white/10 bg-black/50 p-6 overflow-y-auto hidden lg:block", className)}>
             <h3 className="text-xs font-semibold text-zinc-500 uppercase tracking-widest mb-4">Episodes</h3>
             <div className="space-y-4">
-                {episodes.map((ep, i) => (
-                    <div key={i} className="group cursor-pointer p-3 rounded-lg hover:bg-white/5 transition-all border border-transparent hover:border-white/5">
+                {EPISODES.map((ep) => (
+                    <Link key={ep.id} href={`/episode/${ep.slug}`} className="block group cursor-pointer p-3 rounded-lg hover:bg-white/5 transition-all border border-transparent hover:border-white/5">
                         <div className="h-24 w-full bg-zinc-900 rounded-md mb-2 overflow-hidden relative">
-                            {/* Placeholder for Banner */}
+                            {/* Placeholder for Banner - Dynamic in future */}
                             <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/50 to-purple-900/50" />
+                            <div className="absolute bottom-1 right-2 text-[10px] text-white/60 bg-black/50 px-1 rounded uppercase tracking-wider">{ep.type}</div>
                         </div>
                         <h4 className="font-medium text-zinc-200 group-hover:text-white transition-colors">{ep.title}</h4>
                         <span className="text-xs text-zinc-500">{ep.date}</span>
-                    </div>
+                    </Link>
                 ))}
             </div>
         </aside>
